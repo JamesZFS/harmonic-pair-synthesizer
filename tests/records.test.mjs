@@ -1,0 +1,11 @@
+import assert from 'node:assert/strict';
+import {defaults} from '../dist/settings.mjs';
+import {draftRecord,recordState,recordSignature,readRecords,savedRecords} from '../dist/records.mjs';
+const state=defaults();state.tones[0].amps[0]=.42;state.tones[0].playing=true;state.tones[0].selected=3;state.routing='split';state.harmonicSnap=true;state.guide=true;
+const draft=draftRecord(state,'A < B');assert.equal(draft.savedAt,null);assert.equal(draft.state.tones[0].playing,false);assert.equal(draft.state.tones[0].selected,-1);assert.equal(draft.state.guide,false);assert.equal(draft.state.tones[0].amps[0],.42);
+const store=savedRecords({records:[]},draft,state,'2026-10-19T18:00:00.000Z');assert.equal(store.records.length,1);assert.equal(store.lastOpenedId,draft.id);assert.deepEqual(readRecords(JSON.parse(JSON.stringify(store))),store);
+const sig=recordSignature('A',state);state.tones[0].playing=false;state.tones[0].selected=-1;state.guide=false;assert.equal(recordSignature('A',state),sig);state.tones[0].f=300;assert.notEqual(recordSignature('A',state),sig);assert.equal(store.records[0].state.tones[0].f,200,'working edits cannot mutate saved snapshot');
+const next=savedRecords(store,{...draft,name:' renamed '},state);assert.equal(next.records.length,1);assert.equal(next.records[0].name,'renamed');assert.equal(store.records[0].name,'A < B');
+assert.deepEqual(readRecords(null),{records:[],lastOpenedId:null});assert.equal(readRecords({records:[...store.records,...store.records,null]}).records.length,1);
+console.log('PASS: immutable saved records, playback exclusion, canonical dirty signatures, renaming, reload validation and duplicate IDs.');
+const automatic=defaults();const autoSignature=recordSignature('Auto',automatic);automatic.panelHeight=950;assert.equal(recordSignature('Auto',automatic),autoSignature);automatic.panelHeightAuto=false;assert.notEqual(recordSignature('Auto',automatic),autoSignature);assert.equal(recordState(automatic).panelHeight,950);

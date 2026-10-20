@@ -1,0 +1,12 @@
+{
+  "name": "harmonic-pair-synthesizer",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A visual two-tone additive synthesizer for exploring harmonic relationships.",
+  "type": "module",
+  "scripts": {
+    "test": "node --test",
+    "check": "node --check dist/app.js"
+  },
+  "engines": { "node": ">=22" }
+}
